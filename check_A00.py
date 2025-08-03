@@ -11,7 +11,7 @@ def run(code,inputs):
         return f"Error: {e}"
     return output
 
-def check_A1(code):
+def check_A01(code):
     inputs = ["John","Doe"]
     excepted = ["Hello John Doe","JoDo"]
     output = run(code, inputs).split("\n")

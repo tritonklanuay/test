@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="th">
+<?php
+	$APP_RootDir = str_repeat("../", substr_count($_SERVER["PHP_SELF"], "/"));
+	require($APP_RootDir."private/script/start/PHP.php");
+	$header["title"] = "Exam - Online Exam";
+	$APP_PAGE -> print -> head();
+
+	if (empty($APP_USER)) {
+		header("location: $signinURL");
+		exit();
+	}
+?>
+<style type="text/css">
+	
+</style>
+<script type="text/javascript">
+	// const TRANSLATION = location.pathname.substring(AppConfig.baseURL.length).replace(/\/$/, "").replaceAll("/", "+");
+	$(document).ready(function() {
+		page.init();
+	});
+	const page = (function(d) {
+		const cv = { API_URL: AppConfig.APIbase + "" };
+		var sv = {inited: false};
+		var initialize = function() {
+			if (sv.inited) return;
+
+			sv.inited = true;
+		};
+		var myFunction = function() {
+
+		};
+		return {
+			init: initialize,
+			myFunction
+		};
+	}(document));
+</script>
+<?php $APP_PAGE -> print -> nav(); ?>
+<main>
+	<section class="container">
+		<h2>ข้อสอบออนไลน์</h2>
+		<p>ยินดีต้อนรับ <?=$_SESSION["auth"]["name"]["TH"]["f"]?></p>
+
+		<form class="form form-bs" onSubmit="return false;">
+			<h3>คำถาม:</h3><br>
+			<label>19. ตรวจสอบเลขหลักสุดท้าย</label><br>
+			<h3>คำตอบ:</h3><br>
+			<input type="text" id="answer" /><br>
+			<button class="primary ripple-click" onclick="submitAnswer()">ส่งคำตอบ</button>
+		</form>
+	</section>
+</main>
+<?php
+	$APP_PAGE -> print -> materials();
+	$APP_PAGE -> print -> footer();
+?>

@@ -11,11 +11,25 @@ def run(code,inputs):
         return f"Error: {e}"
     return output
 
-def check_A1(code):
-    inputs = ["John","Doe"]
-    excepted = ["Hello John Doe","JoDo"]
-    output = run(code, inputs).split("\n")
-    if output == excepted:
-        return True,"ผ่าน"
-    else:
-        return False, f"ไม่ผ่าน"
+def check_A01(code):
+    testcases = [
+        {
+            "inputs": ["1,2"],
+            "expected": ["ค่ามากที่สุดคือ2"]
+        },
+        {
+            "inputs": ["2,1"],
+            "expected": ["ค่ามากที่สุดคือ2"]
+        },
+        {
+            "inputs": ["2,2"],
+            "expected": ["เท่ากัน"]
+        }
+    ]
+
+    for i, case in enumerate(testcases, 1):
+        output = run(code, case["inputs"].copy()).split("\n")
+        if output != case["expected"]:
+            return False, f"ไม่ผ่าน"
+
+    return True, "ผ่าน"
