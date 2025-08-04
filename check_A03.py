@@ -18,6 +18,10 @@ def check_A01(code):
             "expected": ["เกรด 4"]
         },
         {
+            "inputs": ["101"],
+            "expected": ["ผิดปกติ"]
+        },
+        {
             "inputs": ["70"],
             "expected": ["เกรด3"]
         },

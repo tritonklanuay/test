@@ -15,14 +15,18 @@ def check_A01(code):
     testcases = [
         {
             "inputs": ["1,2,3"],
-            "expected": ["3"]
+            "expected": ["ค่ามากที่สุดคือ 3"]
         },{
-            "inputs": ["2,4,3"],
-            "expected": ["4"]
+            "inputs": ["2,4,2"],
+            "expected": ["ค่ามากที่สุดคือ 4"]
         },
         {
-            "inputs": ["5,4,3"],
-            "expected": ["5"]
+            "inputs": ["5,4,5"],
+            "expected": ["ค่ามากที่สุดคือ 5"]
+        },
+        {
+            "inputs": ["5,5,5"],
+            "expected": ["เท่ากัน"]
         }
     ]
 

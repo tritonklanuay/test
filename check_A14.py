@@ -14,12 +14,12 @@ def run(code,inputs):
 def check_A01(code):
     testcases = [
         {
-            "inputs": ["a,2,3"],
+            "inputs": ["t,2,3"],
             "expected": ["3"]
         },
         {
-            "inputs": ["b,4,5"],
-            "expected": ["10"]
+            "inputs": ["q,4,5"],
+            "expected": ["20"]
         }
     ]
 

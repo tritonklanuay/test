@@ -15,11 +15,11 @@ def check_A01(code):
     testcases = [
         {
             "inputs": ["120,1"],
-            "expected": ["เร็วเกินไป"]
+            "expected": ["120Km/hr,ผิดกฏหมาย"]
         },
         {
             "inputs": ["160,2"],
-            "expected": ["ผ่านกฏหมาย"]
+            "expected": ["80Km/hr,ถูกกฏหมาย"]
         }
     ]
 
