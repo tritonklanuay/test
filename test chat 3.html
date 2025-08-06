@@ -113,9 +113,6 @@ def runCode():
         })
 
         # แสดงผลลัพธ์แต่ละเคส
-        output_text += f"Input: {test['input']}\n"
-        output_text += f"Expected: {expected}\n"
-        output_text += f"Student Output: {student_output}\n"
         output_text += f"{'✅ Correct' if correct else '❌ Incorrect'}\n\n"
 
     output_div.text = output_text
