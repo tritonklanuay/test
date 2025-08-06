@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Multi-Problem Python Grader</title>
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/brython@3.9.5/brython.min.js"></script>
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/brython@3.9.5/brython_stdlib.js"></script>
+  <style>
+    textarea, select, pre {
+      width: 100%;
+      font-family: monospace;
+      margin-top: 10px;
+    }
+    button {
+      margin-top: 10px;
+    }
+    .result {
+      background: #f2f2f2;
+      padding: 10px;
+      margin-top: 10px;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body onload="brython()">
+  <h1>Python Grader (Multiple Problems)</h1>
+
+  <label for="problem">Select Problem:</label><br>
+  <select id="problem">
+    <option value="sum_two_numbers">1. Sum of Two Numbers</option>
+    <option value="max_of_three">2. Max of Three Numbers</option>
+  </select>
+
+  <label for="code">Student Code:</label><br>
+  <textarea id="code" rows="6"></textarea><br>
+
+  <button onclick="runCode()">Run & Evaluate</button>
+
+  <div class="result" id="output">Output will appear here...</div>
+
+  <script type="text/python">
+from browser import document, html, window
+import traceback
+import sys
+from io import StringIO
+
+
+test_banks = {
+    "sum_two_numbers": {
+        "name": "Sum of Two Numbers",
+        "cases": [
+            {"input": ["3", "5"], "output": "8"},
+            {"input": ["10", "15"], "output": "25"}
+        ]
+    },
+    "max_of_three": {
+        "name": "Max of Three Numbers",
+        "cases": [
+            {"input": ["1", "5", "3"], "output": "5"},
+            {"input": ["9", "2", "7"], "output": "9"}
+        ]
+    }
+}
+
+def runCode():
+    selected = document["problem"].value
+    test_cases = test_banks[selected]["cases"]
+    code = document["code"].value
+
+    results = []
+    for test in test_cases:
+        input_data = test["input"].copy()
+        expected = test["output"]
+
+        output_io = StringIO()
+        sys.stdout = output_io
+
+        try:
+            input_values = input_data
+            def mock_input(prompt=""):
+                return input_values.pop(0)
+            builtins = __import__("builtins")
+            builtins.input = mock_input
+
+            exec(code, {"__name__": "__main__"})
+            student_output = output_io.getvalue().strip()
+        except Exception as e:
+            student_output = f"Error: {traceback.format_exc(limit=1)}"
+
+        result = {
+            "input": test["input"],
+            "expected": expected,
+            "student_output": student_output,
+            "correct": student_output == expected
+        }
+        results.append(result)
+
+    output_div = document["output"]
+    output_text = f"Selected Problem: {test_banks[selected]['name']}\n\n"
+    for r in results:
+        output_text += f"Input: {r['input']}\n"
+        output_text += f"Expected: {r['expected']}\n"
+        output_text += f"Student Output: {r['student_output']}\n"
+        output_text += f"✅ Correct\n\n" if r["correct"] else f"❌ Incorrect\n\n"
+    output_div.text = output_text
+
+window.runCode = runCode
+  </script>
+</body>
+</html>

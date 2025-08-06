@@ -14,23 +14,16 @@ def run(code,inputs):
 def check_A01(code):
     testcases = [
         {
-            "inputs": ["1,+,2"],
-            "expected": ["3"]
+            "inputs": ["6,0,5"],
+            "expected": ["6 5 0"]
         },
         {
-            "inputs": ["3,-,5"],
-            "expected": ["-2"]
+            "inputs": ["2,2,3"],
+            "expected": ["3 2 2"]
         },
          {
-            "inputs": ["4,*,5"],
-            "expected": ["20"]
-        },
-        {
-            "inputs": ["15,/,5"],
-            "expected": ["3"]
-        }, {
-            "inputs": ["1,/,0"],
-            "expected": ["หาค่าไม่ได้"]
+            "inputs": ["4,4,4"],
+            "expected": ["4 4 4"]
         }
     ]
 
