@@ -1,121 +1,124 @@
-import contextlib
-import io
-import webbrowser
-
-def run(code, inputs):
-    output = ""
-    try:
-        with contextlib.redirect_stdout(io.StringIO()) as f:
-            exec(code, {'input': lambda: inputs.pop(0)})
-        output = f.getvalue().strip()
-    except Exception as e:
-        return f"Error: {e}"
-    return output
-
-def check_A01(code):
-    testcases = [
-        {
-            "inputs": ["1"],
-            "expected": ["เลขคี่"]
-        },
-        {
-            "inputs": ["2"],
-            "expected": ["เลขคู่"]
-        }
-    ]
-
-    results_html = ""
-    all_passed = True
-
-    for i, case in enumerate(testcases, 1):
-        output = run(code, case["inputs"].copy()).split("\n")
-        expected = case["expected"]
-        passed = output == expected
-        all_passed = all_passed and passed
-
-        results_html += f"""
-        <tr>
-            <td>{i}</td>
-            <td>{case["inputs"]}</td>
-            <td>{expected}</td>
-            <td>{output}</td>
-            <td style="color: {'green' if passed else 'red'};">{"ผ่าน" if passed else "ไม่ผ่าน"}</td>
-        </tr>
-        """
-
-    summary = "ผ่าน" if all_passed else "ไม่ผ่าน"
-    return all_passed, results_html, summary
-
-# -----------------------------------
-# 🔽 โค้ดของผู้เรียนที่ต้องการตรวจ
-student_code = """
-n = int(input())
-if n % 2 == 0:
-    print("เลขคู่")
-else:
-    print("เลขคี่")
-"""
-# -----------------------------------
-
-# ตรวจและสร้าง HTML รายงาน
-passed, results_html, summary = check_A01(student_code)
-
-html_content = f"""
 <!DOCTYPE html>
-<html lang="th">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>ผลการตรวจโค้ด</title>
-    <style>
-        body {{
-            font-family: Arial, sans-serif;
-            padding: 20px;
-            background: #f4f4f4;
-        }}
-        table {{
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }}
-        th, td {{
-            border: 1px solid #ccc;
-            padding: 8px;
-            text-align: center;
-        }}
-        th {{
-            background: #ddd;
-        }}
-        .summary {{
-            font-size: 1.2em;
-            font-weight: bold;
-            color: { 'green' if passed else 'red' };
-            margin-top: 20px;
-        }}
-    </style>
+  <meta charset="UTF-8">
+  <title>Multi-Problem Python Grader</title>
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/brython@3.9.5/brython.min.js"></script>
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/brython@3.9.5/brython_stdlib.js"></script>
+  <style>
+    textarea, select, pre {
+      width: 100%;
+      font-family: monospace;
+      margin-top: 10px;
+    }
+    button {
+      margin-top: 10px;
+    }
+    .result {
+      background: #f2f2f2;
+      padding: 10px;
+      margin-top: 10px;
+      white-space: pre-wrap;
+    }
+  </style>
 </head>
-<body>
-    <h1>ผลการตรวจโค้ด: A01</h1>
-    <div class="summary">ผลรวม: {summary}</div>
-    <table>
-        <thead>
-            <tr>
-                <th>กรณีทดสอบ</th>
-                <th>Input</th>
-                <th>Expected Output</th>
-                <th>Student Output</th>
-                <th>ผลลัพธ์</th>
-            </tr>
-        </thead>
-        <tbody>
-            {results_html}
-        </tbody>
-    </table>
+<body onload="brython()">
+  <h1>Python Grader (Multiple Problems)</h1>
+
+  <label for="problem">Select Problem:</label><br>
+  <select id="problem">
+    <option value="sum_two_numbers">1. Sum of Two Numbers</option>
+    <option value="max_of_three">2. VAT7</option>
+  </select>
+
+  <label for="code">Student Code:</label><br>
+  <textarea id="code" rows="6">
+
+  </textarea><br>
+
+  <button onclick="runCode()">Run & Evaluate</button>
+
+  <div class="result" id="output">Output will appear here...</div>
+
+  <script type="text/python">
+from browser import document, html, window
+import traceback
+import sys
+from io import StringIO
+import re
+
+test_banks = {
+    "sum_two_numbers": {
+        "name": "Sum of Two Numbers",
+        "cases": [
+            {"input": [3, 5], "output": "8"},
+            {"input": [10, 15], "output": "25"}
+        ]
+    },
+    "max_of_three": {
+        "name": "Max of Three Numbers",
+        "cases": [
+            {"input": ["550"], "output": "588.5"},
+            {"input": ["100"], "output": "107.0"}
+        ]
+    }
+}
+
+def replace_inputs(code, inputs):
+    # แทน input() ทีละตัวในโค้ดด้วยค่าจาก test case
+    def repl(match):
+        val = inputs.pop(0)
+        return f"'{val}'" if isinstance(val, str) else str(val)
+    
+    # ใช้ regex หา input() แล้วแทน
+    pattern = r"input\s*\(\s*\)"
+    return re.sub(pattern, repl, code)
+
+def runCode():
+    selected = document["problem"].value
+    test_cases = test_banks[selected]["cases"]
+    original_code = document["code"].value
+
+    results = []
+    for test in test_cases:
+        input_data = test["input"].copy()
+        expected = test["output"]
+
+        # แทน input() ในโค้ด
+        final_code = replace_inputs(original_code, input_data)
+
+        output_io = StringIO()
+        sys_stdout_backup = sys.stdout
+        sys.stdout = output_io
+
+        try:
+            exec(final_code, {"__name__": "__main__"})
+            student_output = output_io.getvalue().strip()
+        except Exception:
+            student_output = f"Error: {traceback.format_exc(limit=1)}"
+        finally:
+            sys.stdout = sys_stdout_backup
+
+        result = {
+            "input": test["input"],
+            "expected": expected,
+            "student_output": student_output,
+            "correct": student_output == expected
+        }
+        results.append(result)
+
+    # แสดงผล
+    output_div = document["output"]
+    output_text = f"Selected Problem: {test_banks[selected]['name']}\n\n"
+    for r in results:
+        output_text += f"Input: {r['input']}\n"
+        output_text += f"Expected: {r['expected']}\n"
+        output_text += f"Student Output: {r['student_output']}\n"
+        output_text += f"✅ Correct\n\n" if r["correct"] else f"❌ Incorrect\n\n"
+    output_div.text = output_text
+
+window.runCode = runCode
+
+  </script>
 </body>
 </html>
-"""
-
-# บันทึก HTML และเปิดในเบราว์เซอร์
-with open("report.html", "w", encoding="utf-8") as f:
-    f.write(html_content)
-
-webbrowser.open("report.html")
