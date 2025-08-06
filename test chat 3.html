@@ -27,16 +27,26 @@
 
   <label for="problem">Select Problem:</label><br>
   <select id="problem">
-    <option value="sum_two_numbers">1. Sum of Two Numbers</option>
-    <option value="max_of_three">2. VAT7</option>
+    <option value="plustwo">EX1. Sum of Two Numbers</option>
+    <option value="balance">EX2. Balance</option>
+    <option value="oddeven">1. Odd or Even</option>
+    <option value="bigger">2. Who is Bigger</option>
+    <option value="vat">3. VAT7</option>
+    <option value="fever">4. I have a fever</option>
+    <option value="legal">5. Legal or not</option>
+    <option value="zero">6. Is 0 a plus or a minus</option>
+    <option value="tri">7. Area of triangle</option>
+    <option value="quad">8. Triangle and Quadrangle</option>
+    <option value="multiple">9. Multiple or Plus</option>
+    <option value="pay">10. Overtime Pay</option>
   </select>
 
+  <div id="problem-description" style="margin-top: 10px; padding: 8px; background: #eef; border-left: 4px solid #888;"></div>
+
   <label for="code">Student Code:</label><br>
-  <textarea id="code" rows="6">
-  </textarea><br>
+  <textarea id="code" rows="6"></textarea><br>
 
   <button onclick="runCode()">Run & Evaluate</button>
-
   <button onclick="downloadCSV()">📥 Download CSV</button>
 
   <div class="result" id="output">Output will appear here...</div>
@@ -48,53 +58,141 @@ import sys
 from io import StringIO
 import re
 
+results_data = []
+
 test_banks = {
-    "sum_two_numbers": {
-        "name": "Sum of Two Numbers",
+    "plustwo": {
+        "name": "EX1. Sum of Two Numbers",
+        "description": "เขียนโปรแกรมเพื่อรับตัวเลข 2 จำนวนจากผู้ใช้ แล้วแสดงผลรวมของตัวเลขทั้งสอง/n/nInput:/n5/n7/nOutput:/n12",
         "cases": [
-            {"input": [3, 5], "output": "8"},
-            {"input": [10, 15], "output": "25"}
+            {"input": ["3", "5"], "output": "8"},
+            {"input": ["10", "15"], "output": "25"},
+            {"input": ["0", "0"], "output": "0"}
         ]
     },
-    "max_of_three": {
-        "name": "Max of Three Numbers",
+    "balance": {
+        "name": "EX2. Balance",
+        "description": "รับจำนวนเต็มมา 1 ค่าแล้ว output ถ้ามากกว่า 5 ถือว่า Too Much ถ้าน้อยกว่า 5 ถือว่า Not Enough ถ้าเท่ากับ 5 ถือว่า Balance",
+        "cases": [
+            {"input": ["10"], "output": "too much"},
+            {"input": ["5"], "output": "balance"},
+            {"input": ["0"], "output": "not enough"}
+        ]
+    },
+    "oddeven": {
+        "name": "1. Odd or Even",
+        "description": "ให้รับเลขจำนวนเต็มจำนวนหนึ่งแล้วตรวจสอบว่าจำนวนเต็มนั้นเป็นเลขคู่หรือเลขคี่/n/nInput:/n5/nOutput:/nOdd",
+        "cases": [
+            {"input": ["1"], "output": "Odd"},
+            {"input": ["23"], "output": "Odd"},
+            {"input": ["100"], "output": "Even"}
+        ]
+    },
+    "bigger": {
+        "name": "2. Who is Bigger",
+        "description": "รับจำนวนเต็มมา 2 ค่าแล้ว output กลับไปว่าจำนวนใดมากกว่า ถ้าจำนวนทั้งสองค่าเท่ากันให้บอกว่าค่าเท่ากัน/n/nInput:/n2/n7/nOutput:/n7/n/nInput:/n2/n2/nOutput:/nEqual",
+        "cases": [
+            {"input": ["5", "4"], "output": "5"},
+            {"input": ["6", "6"], "output": "Equal"},
+            {"input": ["0", "8"], "output": "8"}
+        ]
+    },
+    "vat": {
+        "name": "3. VAT7",
+        "description": "รับราคาสินค้า แล้วคำนวณราคาโดยรวมภาษีมูลค่าเพิ่ม 7%/n/nInput:/n100/nOutput:/n107.0",
         "cases": [
             {"input": ["550"], "output": "588.5"},
-            {"input": ["100"], "output": "107.0"}
+            {"input": ["100"], "output": "107.0"},
+            {"input": ["0"], "output": "0.0"}
+        ]
+    },
+    "fever": {
+        "name": "4. I have a fever",
+        "description": "ให้รับเลขจำนวนทศนิยมจำนวนหนึ่ง ตั้งแต่ 37.5 ขึ้นไปถือว่าเป็นไข้/n/nInput:/n27/nOutput:/nHealthy/n/nInput:/n42/nOutput:/nFever",
+        "cases": [
+            {"input": ["0"], "output": "Healthy"},
+            {"input": ["100"], "output": "Fever"},
+            {"input": ["37.5"], "output": "Fever"}
+        ]
+    },
+    "legal": {
+        "name": "5. Legal or not",
+        "description": "รับอายุ แล้วแสดงว่าอายุนั้นบรรลุนิติภาวะหรือไม่ (20 ขึ้นไปถือว่าบรรลุ)/n/nInput:/n2/nOutput:/n2,Illegal/n/nInput:/n50/nOutput:/n50,Legal",
+        "cases": [
+            {"input": ["25"], "output": "25,Legal"},
+            {"input": ["20"], "output": "20,Legal"},
+            {"input": ["10"], "output": "10,Illegal"}
+        ]
+    },
+    "zero": {
+        "name": "6. Is 0 a plus or a minus",
+        "description": "รับจำนวนเต็ม แล้วบอกว่าเป็นบวก ลบ หรือ ศูนย์/nOutput:/n+,-,0",
+        "cases": [
+            {"input": ["6"], "output": "+"},
+            {"input": ["-5"], "output": "-"},
+            {"input": ["0"], "output": "0"}
+        ]
+    },
+    "tri": {
+        "name": "7. Area of triangle",
+        "description": "รับความสูงและฐาน แล้วคำนวณพื้นที่สามเหลี่ยม/n/nInput:/n5/n10/nOutput:/n25",
+        "cases": [
+            {"input": ["10", "50"], "output": "250"},
+            {"input": ["100", "0"], "output": "0"},
+            {"input": ["0", "0"], "output": "0"}
+        ]
+    },
+    "quad": {
+        "name": "8. Triangle and Quadrangle",
+        "description": "รับ t หรือ q เพื่อตัดสินว่าจะคำนวณพื้นที่สามเหลี่ยมหรือสี่เหลี่ยม แล้วรับความสูงและความกว้าง/n/nInput:/nt/n5/n6/nOutput:/n15",
+        "cases": [
+            {"input": ["t", "3", "100"], "output": "150"},
+            {"input": ["q", "5", "100"], "output": "500"},
+            {"input": ["a", "10", "5"], "output": "no"}
+        ]
+    },
+    "multiple": {
+        "name": "9. Multiple or Plus",
+        "description": "รับจำนวนเต็ม 2 ค่า แล้วบอกว่าผลบวกหรือผลคูณมากกว่ากัน/n/nInput:/n5/n7/nOutput:/nMultiple/n/nInput:/n2/n0/nOutput:/nPlus",
+        "cases": [
+            {"input": ["10", "5"], "output": "Multiple"},
+            {"input": ["1", "5"], "output": "Plus"},
+            {"input": ["7", "0"], "output": "Plus"}
+        ]
+    },
+    "pay": {
+        "name": "10. Overtime Pay",
+        "description": "คิดเงินค่าทำงาน ชั่วโมงละ 100 บาท เกิน 8 ชั่วโมงคิด 200 บาทต่อชั่วโมง/n/nInput:/n14/nOutput:/n2000",
+        "cases": [
+            {"input": ["5"], "output": "500"},
+            {"input": ["10"], "output": "1200"},
+            {"input": ["8"], "output": "800"}
         ]
     }
 }
 
 def replace_inputs(code, inputs):
-    # แทน input() ทีละตัวในโค้ดด้วยค่าจาก test case
-    def repl(match):
-        val = inputs.pop(0)
-        return f"'{val}'" if isinstance(val, str) else str(val)
-    
-    # ใช้ regex หา input() แล้วแทน
     pattern = r"input\s*\(\s*\)"
-    return re.sub(pattern, repl, code)
+    return re.sub(pattern, lambda m: f"'{inputs.pop(0)}'", code)
 
 def runCode():
     selected = document["problem"].value
     test_cases = test_banks[selected]["cases"]
     original_code = document["code"].value
-
-
     output_div = document["output"]
     output_text = f"Selected Problem: {test_banks[selected]['name']}\n\n"
 
     for test in test_cases:
-        input_data = test["input"].copy()
+        inputs = test["input"].copy()
         expected = test["output"]
-        final_code = replace_inputs(original_code, input_data)
+        code_to_run = replace_inputs(original_code, inputs)
 
-        output_io = StringIO()
         sys_stdout_backup = sys.stdout
+        output_io = StringIO()
         sys.stdout = output_io
 
         try:
-            exec(final_code, {"__name__": "__main__"})
+            exec(code_to_run, {"__name__": "__main__"})
             student_output = output_io.getvalue().strip()
         except Exception:
             student_output = f"Error: {traceback.format_exc(limit=1)}"
@@ -102,8 +200,6 @@ def runCode():
             sys.stdout = sys_stdout_backup
 
         correct = student_output == expected
-
-        # เก็บผลไว้ใน results_data
         results_data.append({
             "problem": test_banks[selected]["name"],
             "input": test["input"],
@@ -112,30 +208,11 @@ def runCode():
             "correct": correct
         })
 
-        # แสดงผลลัพธ์แต่ละเคส
-        output_text += f"{'✅ Correct' if correct else '❌ Incorrect'}\n\n"
+        output_text += f"Input: {test['input']} | Expected: {expected} | Got: {student_output} → {'✅' if correct else '❌'}\n"
 
     output_div.text = output_text
 
 window.runCode = runCode
-results_data = []  # เก็บผลไว้ในตัวแปร
-
-def runCode():
-    ...
-
-    for test in test_cases:
-        ...
-        result = {
-            "problem": test_banks[selected]["name"],
-            "input": test["input"],
-            "expected": expected,
-            "student_output": student_output,
-            "correct": student_output == expected
-        }
-        results.append(result)
-        results_data.append(result)  # บันทึกไว้สำหรับ export CSV
-
-    ...
 
 def downloadCSV():
     if not results_data:
@@ -145,7 +222,7 @@ def downloadCSV():
     csv = "Problem,Input,Expected,Student Output,Result\n"
     for r in results_data:
         line = f"{r['problem']}," \
-               f"{'|'.join(map(str, r['input']))}," \
+               f"{'|'.join(r['input'])}," \
                f"{r['expected']}," \
                f"{r['student_output']}," \
                f"{'Correct' if r['correct'] else 'Incorrect'}"
@@ -163,11 +240,14 @@ def downloadCSV():
 window.downloadCSV = downloadCSV
 
 def on_problem_change(event):
-    document["code"].value = ""  # ล้างช่อง student code
+    key = document["problem"].value
+    description = test_banks[key]["description"].replace("/n", "<br>")
+    document["problem-description"].html = description
+    document["code"].value = ""
+    document["output"].text = "Output will appear here..."
 
 document["problem"].bind("change", on_problem_change)
-
-
+on_problem_change(None)
   </script>
 </body>
 </html>
