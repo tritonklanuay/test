@@ -1,176 +1,774 @@
 <!DOCTYPE html>
-<html>
+<html lang="th">
 <head>
-  <meta charset="UTF-8">
-  <title>Multi-Problem Python Grader</title>
-  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/brython@3.9.5/brython.min.js"></script>
-  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/brython@3.9.5/brython_stdlib.js"></script>
-  <style>
-    textarea, select, pre {
-      width: 100%;
-      font-family: monospace;
-      margin-top: 10px;
-    }
-    button {
-      margin-top: 10px;
-    }
-    .result {
-      background: #f2f2f2;
-      padding: 10px;
-      margin-top: 10px;
-      white-space: pre-wrap;
-    }
-  </style>
-</head>
-<body onload="brython()">
-  <h1>Python Grader (Multiple Problems)</h1>
-
-  <label for="problem">Select Problem:</label><br>
-  <select id="problem">
-    <option value="sum_two_numbers">1. Sum of Two Numbers</option>
-    <option value="max_of_three">2. VAT7</option>
-  </select>
-
-  <label for="code">Student Code:</label><br>
-  <textarea id="code" rows="6">
-  </textarea><br>
-
-  <button onclick="runCode()">Run & Evaluate</button>
-
-  <button onclick="downloadCSV()">📥 Download CSV</button>
-
-  <div class="result" id="output">Output will appear here...</div>
-
-  <script type="text/python">
-from browser import document, html, window
-import traceback
-import sys
-from io import StringIO
-import re
-
-test_banks = {
-    "sum_two_numbers": {
-        "name": "Sum of Two Numbers",
-        "cases": [
-            {"input": [3, 5], "output": "8"},
-            {"input": [10, 15], "output": "25"}
-        ]
-    },
-    "max_of_three": {
-        "name": "Max of Three Numbers",
-        "cases": [
-            {"input": ["550"], "output": "588.5"},
-            {"input": ["100"], "output": "107.0"}
-        ]
-    }
-}
-
-def replace_inputs(code, inputs):
-    # แทน input() ทีละตัวในโค้ดด้วยค่าจาก test case
-    def repl(match):
-        val = inputs.pop(0)
-        return f"'{val}'" if isinstance(val, str) else str(val)
-    
-    # ใช้ regex หา input() แล้วแทน
-    pattern = r"input\s*\(\s*\)"
-    return re.sub(pattern, repl, code)
-
-def runCode():
-    selected = document["problem"].value
-    test_cases = test_banks[selected]["cases"]
-    original_code = document["code"].value
-
-
-    output_div = document["output"]
-    output_text = f"Selected Problem: {test_banks[selected]['name']}\n\n"
-
-    for test in test_cases:
-        input_data = test["input"].copy()
-        expected = test["output"]
-        final_code = replace_inputs(original_code, input_data)
-
-        output_io = StringIO()
-        sys_stdout_backup = sys.stdout
-        sys.stdout = output_io
-
-        try:
-            exec(final_code, {"__name__": "__main__"})
-            student_output = output_io.getvalue().strip()
-        except Exception:
-            student_output = f"Error: {traceback.format_exc(limit=1)}"
-        finally:
-            sys.stdout = sys_stdout_backup
-
-        correct = student_output == expected
-
-        # เก็บผลไว้ใน results_data
-        results_data.append({
-            "problem": test_banks[selected]["name"],
-            "input": test["input"],
-            "expected": expected,
-            "student_output": student_output,
-            "correct": correct
-        })
-
-        # แสดงผลลัพธ์แต่ละเคส
-        output_text += f"Input: {test['input']}\n"
-        output_text += f"Expected: {expected}\n"
-        output_text += f"Student Output: {student_output}\n"
-        output_text += f"{'✅ Correct' if correct else '❌ Incorrect'}\n\n"
-
-    output_div.text = output_text
-
-window.runCode = runCode
-results_data = []  # เก็บผลไว้ในตัวแปร
-
-def runCode():
-    ...
-
-    for test in test_cases:
-        ...
-        result = {
-            "problem": test_banks[selected]["name"],
-            "input": test["input"],
-            "expected": expected,
-            "student_output": student_output,
-            "correct": student_output == expected
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI ตรวจข้อสอบ Python (จำลอง)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            color: #1f2937;
         }
-        results.append(result)
-        results_data.append(result)  # บันทึกไว้สำหรับ export CSV
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        .problem-section {
+            background-color: #ffffff;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        textarea {
+            width: 100%;
+            min-height: 150px;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-family: monospace;
+            font-size: 0.9rem;
+            background-color: #f9fafb;
+            resize: vertical;
+        }
+        button {
+            background-color: #4f46e5;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: background-color 0.2s;
+        }
+        button:hover {
+            background-color: #4338ca;
+        }
+        .result-box {
+            background-color: #e0f2fe;
+            border: 1px solid #90cdf4;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-top: 1rem;
+            font-family: monospace;
+            white-space: pre-wrap; /* Preserve whitespace and line breaks */
+            word-wrap: break-word; /* Break long words */
+        }
+        .result-pass {
+            background-color: #d1fae5;
+            border-color: #6ee7b7;
+        }
+        .result-fail {
+            background-color: #fee2e2;
+            border-color: #fca5a5;
+        }
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            color: white;
+            font-size: 1.5rem;
+            display: none; /* Hidden by default */
+        }
+    </style>
+</head>
+<body>
+    <div class="loading-overlay" id="loadingOverlay">กำลังประมวลผล...</div>
+    <div class="container">
+        <h1 class="text-4xl font-bold text-center my-8 text-indigo-700">AI ตรวจข้อสอบ Python (จำลอง)</h1>
+        <p class="text-lg text-center mb-8 text-gray-700">
+            ยินดีต้อนรับสู่ระบบตรวจข้อสอบ Python จำลอง! ระบบนี้จะช่วยให้คุณตรวจสอบความถูกต้องของโค้ด Python ของคุณได้
+            <br>
+            <strong class="text-red-600">ข้อควรทราบ:</strong> เนื่องจากข้อจำกัดด้านความปลอดภัยของเบราว์เซอร์ ระบบนี้ไม่สามารถรันโค้ด Python ของคุณได้โดยตรง
+            คุณจะต้อง <strong class="text-red-600">รันโค้ด Python ของคุณในเครื่องของคุณเอง</strong> ด้วยข้อมูลนำเข้าที่เราให้ แล้วนำผลลัพธ์ที่ได้มาวางในช่อง "ผลลัพธ์จากโค้ดของคุณ" เพื่อให้ระบบเปรียบเทียบ
+        </p>
 
-    ...
+        <div id="overall-summary" class="problem-section text-center">
+            <h2 class="text-2xl font-semibold mb-4 text-indigo-600">สรุปผลการตรวจสอบโดยรวม</h2>
+            <p class="text-xl text-gray-800">
+                จำนวนโจทย์ทั้งหมด: <span id="total-problems-count" class="font-bold">0</span><br>
+                โจทย์ที่ผ่าน: <span id="passed-problems-count" class="font-bold text-green-600">0</span><br>
+                โจทย์ที่ไม่ผ่าน: <span id="failed-problems-count" class="font-bold text-red-600">0</span>
+            </p>
+            <p id="overall-status" class="mt-2 text-lg text-gray-600">กำลังรอการตรวจสอบ...</p>
+        </div>
 
-def downloadCSV():
-    if not results_data:
-        window.alert("⛔ ยังไม่มีข้อมูลผลลัพธ์ กรุณากดตรวจสอบก่อน")
-        return
+        <div id="problems-container">
+            <!-- Problems will be rendered here by JavaScript -->
+        </div>
+    </div>
 
-    csv = "Problem,Input,Expected,Student Output,Result\n"
-    for r in results_data:
-        line = f"{r['problem']}," \
-               f"{'|'.join(map(str, r['input']))}," \
-               f"{r['expected']}," \
-               f"{r['student_output']}," \
-               f"{'Correct' if r['correct'] else 'Incorrect'}"
-        csv += line + "\n"
+    <script>
+        // Utility function for exponential backoff (not strictly needed for client-side, but good practice for API calls)
+        async function fetchWithExponentialBackoff(func, maxRetries = 5, delay = 1000) {
+            for (let i = 0; i < maxRetries; i++) {
+                try {
+                    return await func();
+                } catch (error) {
+                    if (i === maxRetries - 1) throw error;
+                    await new Promise(resolve => setTimeout(resolve, delay * Math.pow(2, i)));
+                }
+            }
+        }
 
-    blob = window.Blob.new([csv], { "type": "text/csv" })
-    url = window.URL.createObjectURL(blob)
-    link = document.createElement("a")
-    link.href = url
-    link.download = "grading_results.csv"
-    document <= link
-    link.click()
-    link.remove()
+        // Helper for BigInt primality test (simplified for demo, not robust for cryptography)
+        // This is a probabilistic Miller-Rabin primality test.
+        function isProbablePrime(n, k = 5) {
+            if (n <= 1n) return false;
+            if (n === 2n || n === 3n) return true;
+            if (n % 2n === 0n) return false;
 
-window.downloadCSV = downloadCSV
+            let d = n - 1n;
+            while (d % 2n === 0n) {
+                d /= 2n;
+            }
 
-def on_problem_change(event):
-    document["code"].value = ""  # ล้างช่อง student code
+            const power = (base, exp, mod) => {
+                let res = 1n;
+                base %= mod;
+                while (exp > 0n) {
+                    if (exp % 2n === 1n) res = (res * base) % mod;
+                    base = (base * base) % mod;
+                    exp /= 2n;
+                }
+                return res;
+            };
 
-document["problem"].bind("change", on_problem_change)
+            for (let i = 0; i < k; i++) {
+                // Pick a random 'a' in [2, n-2]
+                let a = 2n + BigInt(Math.floor(Math.random() * (Number(n - 4n) + 1)));
+                let x = power(a, d, n);
 
+                if (x === 1n || x === n - 1n) continue;
 
-  </script>
+                while (d !== n - 1n) {
+                    x = (x * x) % n;
+                    d *= 2n;
+                    if (x === 1n) return false;
+                    if (x === n - 1n) break;
+                }
+                if (x !== n - 1n) return false;
+            }
+            return true;
+        }
+
+        const problems = [
+            {
+                id: 'problem1',
+                title: 'จำนวนเฉพาะหรือจำนวนคี่',
+                description: `
+                    คุณได้รับตัวเลขมา N ตัวและคุณต้องตอบว่าแต่ละตัวนั้น เป็นจำนวนเฉพาะหรือเป็นจำนวนที่หรือไม่ นั่นคือ สำหรับ
+                    แต่ละ i (1 < N) ถ้า A เป็นจำนวนเฉพาะหรือจำนวนที่หรือทั้งสองอย่าง ให้ตอบ T ไม่เช่นนั้นให้ตอบ F
+                    <br><br>
+                    <strong>โจทย์:</strong> จงเขียนโปรแกรมรับจำนวนเต็ม แล้วแสดงว่าแต่ละจำนวนที่รับมาเป็นจำนวนเฉพาะหรือจำนวนที่หรือไม่
+                    <br><br>
+                    <strong>ข้อมูลนำเข้า:</strong>
+                    <br>
+                    บรรทัดแรก มีจำนวนเต็ม N (1 < N < 10) แทนจำนวนของตัวเลขที่ต้องพิจารณามา
+                    <br>
+                    บรรทัดที่ 2 ถึง N + 1 บรรทัดที่ i + 1 มีเลข A[i] (1 <= A[i] <= 10^1000)
+                    <br><br>
+                    <strong>ข้อมูลส่งออก:</strong>
+                    <br>
+                    มี N บรรทัด ในบรรทัดที่ 6 แสดงคำตอบของคำถามสำหรับ A[i] (T หรือ F)
+                `,
+                testCases: [
+                    { input: "3\\n2\\n3\\n4", expectedOutput: "T\\nT\\nF" },
+                    { input: "5\\n1\\n7\\n10\\n11\\n100", expectedOutput: "F\\nT\\nF\\nT\\nF" },
+                    // Test case with large odd and large even number
+                    { input: "2\\n9999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999\\n10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000", expectedOutput: "T\\nF" }
+                ],
+                generateExpectedOutput: (input) => {
+                    const lines = input.split('\\n');
+                    const N = parseInt(lines[0]);
+                    const results = [];
+
+                    const isOdd = (numStr) => {
+                        return BigInt(numStr) % 2n !== 0n;
+                    };
+
+                    // Function to check if a number is prime (using probabilistic Miller-Rabin for large numbers)
+                    const isPrime = (numStr) => {
+                        const num = BigInt(numStr);
+                        if (num <= 1n) return false;
+                        if (num <= 3n) return true; // 2, 3 are prime
+                        if (num % 2n === 0n || num % 3n === 0n) return false; // Divisible by 2 or 3
+
+                        // For numbers that fit in standard JS Number, use a simpler deterministic check
+                        if (num < 2n ** 53n) {
+                            const n = Number(num);
+                            for (let i = 5; i * i <= n; i += 6) {
+                                if (n % i === 0 || n % (i + 2) === 0) return false;
+                            }
+                            return true;
+                        } else {
+                            // For very large numbers, use the probabilistic Miller-Rabin test
+                            return isProbablePrime(num);
+                        }
+                    };
+
+                    for (let i = 1; i <= N; i++) {
+                        const numStr = lines[i];
+                        const isNumPrime = isPrime(numStr);
+                        const isNumOdd = isOdd(numStr);
+                        // Condition: A is prime OR A is odd
+                        results.push((isNumPrime || isNumOdd) ? 'T' : 'F');
+                    }
+                    return results.join('\\n');
+                }
+            },
+            {
+                id: 'problem2',
+                title: 'โปรแกรมตัดเกรด',
+                description: `
+                    ในการเรียนวิชาคอมพิมตอร์ ณ โรงเรียนแห่งหนึ่ง ใช้วิธีการเก็บคะแนนในรูปแบบของ
+                    <br>
+                    • คะแนนเก็บ 30 คะแนน
+                    <br>
+                    • คะแนนสอบกลางภาค 30 คะแนน
+                    <br>
+                    • คะแนนสอบปลายภาค 40 คะแนน
+                    <br>
+                    รวมทั้งสิ้น 100 คะแนน หลังจากที่จบภาคการศึกษา ฝ่ายทะเบียนวัดผลของโรงเรียนต้องการให้อาจารย์ที่สอนวิชา
+                    คอมพิวเตอร์มาคีย์คะแนนลงในระบบคอมพิวเตอร์ เพื่อจะได้ทราบถึงเกรดที่นักเรียนแต่ละคนควรจะได้ โดยใช้โปรแกรมเข้าช่วย
+                    อาจารย์ฝ่ายทะเบียนวัดผลจึงมาขอให้คุณช่วยเขียนโปรแกรมให้หน่อย
+                    <br><br>
+                    <strong>โจทย์:</strong> ให้นักเรียนเขียนโปรแกรมตัดเกรดเพื่อช่วยงานทะเบียนวัดผลของโรงเรียนแห่งนี้
+                    <br><br>
+                    <strong>ข้อมูลนำเข้า:</strong>
+                    <br>
+                    บรรทัดแรก จำนวนเต็มบวก a (0 <= a <= 30) เป็นคะแนนเก็บของนักเรียน
+                    <br>
+                    บรรทัดที่สอง จำนวนเต็มบวก b (0 <= b <= 30) เป็นคะแนนสอบกลางภาคของนักเรียน
+                    <br>
+                    บรรทัดที่สาม จำนวนเต็มบวก c (0 <= c <= 40) เป็นคะแนนสอบปลายภาคของนักเรียน
+                    <br><br>
+                    <strong>ข้อมูลส่งออก:</strong>
+                    <br>
+                    บรรทัดแรก เป็นอักขระใช้แทนเกรดของนักเรียน โดยที่ใช้อักขระตามเงื่อนไขนี้:
+                    <br>
+                    • A ถ้าคะแนนรวมของนักเรียนอยู่ในช่วง 80 - 100
+                    <br>
+                    • B+ ถ้าคะแนนรวมของนักเรียนอยู่ในช่วง 75 - 79
+                    <br>
+                    • B ถ้าคะแนนรวมของนักเรียนอยู่ในช่วง 70 - 74
+                    <br>
+                    • C+ ถ้าคะแนนรวมของนักเรียนอยู่ในช่วง 65 - 69
+                    <br>
+                    • C ถ้าคะแนนรวมของนักเรียนอยู่ในช่วง 60 - 64
+                    <br>
+                    • D+ ถ้าคะแนนรวมของนักเรียนอยู่ในช่วง 55 - 59
+                    <br>
+                    • D ถ้าคะแนนรวมของนักเรียนอยู่ในช่วง 50 - 54
+                    <br>
+                    • F ถ้าคะแนนรวมของนักเรียนอยู่ในช่วง 0 - 49
+                `,
+                testCases: [
+                    { input: "25\\n28\\n35", expectedOutput: "A" }, // 88
+                    { input: "20\\n25\\n30", expectedOutput: "B+" }, // 75
+                    { input: "15\\n20\\n35", expectedOutput: "B" }, // 70
+                    { input: "10\\n20\\n35", expectedOutput: "C+" }, // 65
+                    { input: "10\\n15\\n35", expectedOutput: "C" }, // 60
+                    { input: "10\\n15\\n30", expectedOutput: "D+" }, // 55
+                    { input: "10\\n10\\n30", expectedOutput: "D" }, // 50
+                    { input: "5\\n5\\n30", expectedOutput: "F" }, // 40
+                    { input: "0\\n0\\n0", expectedOutput: "F" }, // 0
+                    { input: "30\\n30\\n40", expectedOutput: "A" } // 100
+                ],
+                generateExpectedOutput: (input) => {
+                    const lines = input.split('\\n').map(Number);
+                    const a = lines[0];
+                    const b = lines[1];
+                    const c = lines[2];
+                    const total = a + b + c;
+
+                    if (total >= 80) return "A";
+                    if (total >= 75) return "B+";
+                    if (total >= 70) return "B";
+                    if (total >= 65) return "C+";
+                    if (total >= 60) return "C";
+                    if (total >= 55) return "D+";
+                    if (total >= 50) return "D";
+                    return "F";
+                }
+            },
+            {
+                id: 'problem3',
+                title: 'หาค่าน้อยที่สุดและมากที่สุด',
+                description: `
+                    <strong>โจทย์:</strong> จงหาค่าน้อยที่สุด และค่ามากที่สุด จากข้อมูลที่กำหนดให้ และแสดงผลออกทางจอภาพ
+                    <br><br>
+                    <strong>ข้อมูลนำเข้า:</strong>
+                    <br>
+                    บรรทัดแรก จำนวนเต็มบวก n (1 <= n <= 1000) บ่งบอกถึงจำนวนข้อมูลที่โจทย์กำหนดให้
+                    <br>
+                    บรรทัดที่ 2 ถึง n + 1 จำนวนเต็ม A เป็นข้อมูลทั้งหมด (-2,000,000,000 <= A <= 2,000,000)
+                    <br><br>
+                    <strong>ข้อมูลส่งออก:</strong>
+                    <br>
+                    บรรทัดแรก จำนวนเต็ม m แสดงจำนวนที่มีค่าน้อยที่สุดในชุดข้อมูลที่โจทย์กำหนด
+                    <br>
+                    บรรทัดที่สอง จำนวนเต็ม M แสดงจำนวนที่มีค่ามากที่สุดในชุดข้อมูลที่โจทย์กำหนด
+                `,
+                testCases: [
+                    { input: "5\\n10\\n-5\\n20\\n0\\n15", expectedOutput: "-5\\n20" },
+                    { input: "1\\n100", expectedOutput: "100\\n100" },
+                    { input: "3\\n-1000000000\\n-2000000000\\n-500000000", expectedOutput: "-2000000000\\n-500000000" },
+                    { input: "4\\n5\\n5\\n5\\n5", expectedOutput: "5\\n5" }
+                ],
+                generateExpectedOutput: (input) => {
+                    const lines = input.split('\\n');
+                    const n = parseInt(lines[0]);
+                    const numbers = lines.slice(1).map(Number);
+                    if (numbers.length === 0) return ""; // Should not happen based on constraints
+
+                    let minVal = numbers[0];
+                    let maxVal = numbers[0];
+                    for (let i = 1; i < n; i++) {
+                        if (numbers[i] < minVal) minVal = numbers[i];
+                        if (numbers[i] > maxVal) maxVal = numbers[i];
+                    }
+                    return `${minVal}\\n${maxVal}`;
+                }
+            },
+            {
+                id: 'problem4',
+                title: 'บวกเมทริกซ์',
+                description: `
+                    <strong>โจทย์:</strong> บวกเมทริกซ์ 2 เมทริกซ์ มิติ m x n จากที่โจทย์ระบุให้
+                    <br><br>
+                    <strong>ข้อมูลนำเข้า:</strong>
+                    <br>
+                    บรรทัดแรก จำนวนเต็มบวก m, n (1 <= m, n <= 100) แสดงมิติของเมทริกซ์
+                    <br>
+                    บรรทัดที่ 2 ถึงบรรทัดที่ m + 1 จำนวนเต็ม n จำนวนในแต่ละบรรทัด แสดงสมาชิกของเมทริกซ์ที่หนึ่ง
+                    <br>
+                    บรรทัดที่ m + 2 ถึงบรรทัดที่ 2(m) + 1 จำนวนเต็ม n จำนวนในแต่ละบรรทัด แสดงสมาชิกของเมทริกซ์ที่สอง
+                    คุณสามารถสมมติได้ว่าสมาชิกของเมทริกซ์แต่ละตัวนั้น มีค่าไม่ต่ำกว่า -2000000000 และไม่เกิน 2000000000
+                    <br><br>
+                    <strong>ข้อมูลส่งออก:</strong>
+                    <br>
+                    จำนวนบรรทัดทั้งสิ้น m บรรทัด แต่ละบรรทัดแสดงสมาชิกของเมทริกซ์ผลลัพธ์ ในรูปแบบตามข้อมูลนำเข้า
+                `,
+                testCases: [
+                    {
+                        input: "2 2\\n1 2\\n3 4\\n5 6\\n7 8",
+                        expectedOutput: "6 8\\n10 12"
+                    },
+                    {
+                        input: "3 2\\n1 0\\n0 1\\n2 3\\n-1 5\\n-2 0\\n1 1",
+                        expectedOutput: "0 5\\n-2 1\\n3 4"
+                    }
+                ],
+                generateExpectedOutput: (input) => {
+                    const lines = input.split('\\n');
+                    const [m, n] = lines[0].split(' ').map(Number);
+                    let lineIndex = 1;
+
+                    const readMatrix = () => {
+                        const matrix = [];
+                        for (let i = 0; i < m; i++) {
+                            matrix.push(lines[lineIndex++].split(' ').map(Number));
+                        }
+                        return matrix;
+                    };
+
+                    const matrix1 = readMatrix();
+                    const matrix2 = readMatrix();
+                    const resultMatrix = [];
+
+                    for (let i = 0; i < m; i++) {
+                        const row = [];
+                        for (let j = 0; j < n; j++) {
+                            row.push(matrix1[i][j] + matrix2[i][j]);
+                        }
+                        resultMatrix.push(row.join(' '));
+                    }
+                    return resultMatrix.join('\\n');
+                }
+            },
+            {
+                id: 'problem5',
+                title: 'ตรวจสอบรูปแบบตัวอักษรในสายอักขระ',
+                description: `
+                    <strong>โจทย์:</strong> ให้นักเรียนตรวจสอบว่า สายอักขระที่โจทย์กำหนดให้นี้ เป็นตัวอักษรพิมพ์เล็กทั้งหมด หรือตัวอักษรพิมพ์ใหญ่
+                    ทั้งหมด หรือมีทั้งตัวอักษรพิมพ์ใหญ่และพิมพ์เล็กผสมกันอยู่
+                    <br><br>
+                    <strong>ข้อมูลนำเข้า:</strong>
+                    <br>
+                    บรรทัดแรกเพียงบรรทัดเดียว สายอักขระ ที่ประกอบไปด้วยตัวอักษร 'a' -' z' หรือ'A' -' Z' เท่านั้น ความยาวไม่
+                    เกิน 10000 ตัวอักษร
+                    <br><br>
+                    <strong>ข้อมูลส่งออก:</strong>
+                    <br>
+                    ให้พิมพ์คำตอบตามเงื่อนไขต่อไปนี้
+                    <br>
+                    • ถ้าสายอักขระประกอบด้วยตัวพิมพ์ใหญ่ทั้งหมด ให้พิมพ์ว่า "All Capital Letter" โดยไม่ต้องมีเครื่องหมาย””
+                    <br>
+                    • ถ้าสายอักขระประกอบด้วยตัวพิมพ์เล็กทั้งหมด ให้พิมพ์ว่า "All Small Letter" โดยไม่ต้องมีเครื่องหมาย “”
+                    <br>
+                    • ถ้าสายอักขระประกอบด้วยตัวอักษรพิมพ์เล็กและพิมพ์ใหญ่ผสมกันไป ให้พิมพ์ว่า "Mix" โดยไม่ต้องมีเครื่องหมาย “”
+                `,
+                testCases: [
+                    { input: "HELLO", expectedOutput: "All Capital Letter" },
+                    { input: "world", expectedOutput: "All Small Letter" },
+                    { input: "Python", expectedOutput: "Mix" },
+                    { input: "aBcDeF", expectedOutput: "Mix" },
+                    { input: "ALLCAPS", expectedOutput: "All Capital Letter" },
+                    { input: "lowercase", expectedOutput: "All Small Letter" }
+                ],
+                generateExpectedOutput: (input) => {
+                    const s = input.trim();
+                    // Check if all characters are uppercase AND there's at least one letter
+                    if (s === s.toUpperCase() && /[a-zA-Z]/.test(s)) {
+                        return "All Capital Letter";
+                    }
+                    // Check if all characters are lowercase AND there's at least one letter
+                    if (s === s.toLowerCase() && /[a-zA-Z]/.test(s)) {
+                        return "All Small Letter";
+                    }
+                    // If neither, it's a mix
+                    return "Mix";
+                }
+            },
+            {
+                id: 'problem6',
+                title: 'ตรวจสอบเลขคู่/คี่',
+                description: `
+                    <strong>โจทย์:</strong> จงเขียนโปรแกรมรับจำนวนเต็ม 1 ตัว แล้วแสดงว่าจำนวนนั้นเป็นเลขคู่หรือเลขคี่
+                    <br><br>
+                    <strong>ข้อมูลนำเข้า:</strong>
+                    <br>
+                    บรรทัดแรก จำนวนเต็ม A (-1,000,000 <= A <= 1,000,000)
+                    <br><br>
+                    <strong>ข้อมูลส่งออก:</strong>
+                    <br>
+                    "Even" ถ้าเป็นเลขคู่ หรือ "Odd" ถ้าเป็นเลขคี่
+                `,
+                testCases: [
+                    { input: "5", expectedOutput: "Odd" },
+                    { input: "10", expectedOutput: "Even" },
+                    { input: "0", expectedOutput: "Even" },
+                    { input: "-3", expectedOutput: "Odd" },
+                    { input: "-8", expectedOutput: "Even" },
+                    { input: "1000000", expectedOutput: "Even" },
+                    { input: "999999", expectedOutput: "Odd" }
+                ],
+                generateExpectedOutput: (input) => {
+                    const num = parseInt(input.trim());
+                    return (num % 2 === 0) ? "Even" : "Odd";
+                }
+            },
+            {
+                id: 'problem7',
+                title: 'ผลรวมของตัวเลข',
+                description: `
+                    <strong>โจทย์:</strong> จงเขียนโปรแกรมรับจำนวนเต็ม N ตัว แล้วหาผลรวมของตัวเลขทั้งหมด
+                    <br><br>
+                    <strong>ข้อมูลนำเข้า:</strong>
+                    <br>
+                    บรรทัดแรก จำนวนเต็มบวก N (1 <= N <= 100) แทนจำนวนของตัวเลขที่ต้องพิจารณา
+                    <br>
+                    บรรทัดที่ 2 ถึง N + 1 บรรทัดที่ i + 1 มีเลข A[i] (-1000 <= A[i] <= 1000)
+                    <br><br>
+                    <strong>ข้อมูลส่งออก:</strong>
+                    <br>
+                    ผลรวมของตัวเลขทั้งหมด
+                `,
+                testCases: [
+                    { input: "3\\n1\\n2\\n3", expectedOutput: "6" },
+                    { input: "2\\n-5\\n10", expectedOutput: "5" },
+                    { input: "1\\n100", expectedOutput: "100" },
+                    { input: "4\\n-1\\n-2\\n-3\\n-4", expectedOutput: "-10" },
+                    { input: "5\\n0\\n0\\n0\\n0\\n0", expectedOutput: "0" }
+                ],
+                generateExpectedOutput: (input) => {
+                    const lines = input.split('\\n');
+                    const N = parseInt(lines[0]);
+                    let sum = 0;
+                    for (let i = 1; i <= N; i++) {
+                        sum += parseInt(lines[i]);
+                    }
+                    return sum.toString();
+                }
+            },
+            {
+                id: 'problem8',
+                title: 'เครื่องคิดเลขง่ายๆ',
+                description: `
+                    <strong>โจทย์:</strong> จงเขียนโปรแกรมรับตัวเลขสองตัวและตัวดำเนินการ (+, -, *, /) แล้วแสดงผลลัพธ์
+                    <br><br>
+                    <strong>ข้อมูลนำเข้า:</strong>
+                    <br>
+                    บรรทัดแรก: จำนวนเต็มหรือทศนิยมตัวแรก
+                    <br>
+                    บรรทัดที่สอง: ตัวดำเนินการ (+, -, *, /)
+                    <br>
+                    บรรทัดที่สาม: จำนวนเต็มหรือทศนิยมตัวที่สอง
+                    <br><br>
+                    <strong>ข้อมูลส่งออก:</strong>
+                    <br>
+                    ผลลัพธ์ของการคำนวณ (สำหรับการหาร ให้แสดงผลลัพธ์เป็นทศนิยม 2 ตำแหน่ง)
+                `,
+                testCases: [
+                    { input: "10\\n+\\n5", expectedOutput: "15" },
+                    { input: "20\\n-\\n7", expectedOutput: "13" },
+                    { input: "4\\n*\\n6", expectedOutput: "24" },
+                    { input: "10\\n/\\n4", expectedOutput: "2.50" },
+                    { input: "7\\n/\\n2", expectedOutput: "3.50" },
+                    { input: "10.5\\n+\\n2.5", expectedOutput: "13" },
+                    { input: "10\\n*\\n0", expectedOutput: "0" },
+                    { input: "5\\n/\\n0.5", expectedOutput: "10.00" }
+                ],
+                generateExpectedOutput: (input) => {
+                    const lines = input.split('\\n');
+                    const num1 = parseFloat(lines[0]);
+                    const operator = lines[1].trim();
+                    const num2 = parseFloat(lines[2]);
+                    let result;
+
+                    switch (operator) {
+                        case '+':
+                            result = num1 + num2;
+                            break;
+                        case '-':
+                            result = num1 - num2;
+                            break;
+                        case '*':
+                            result = num1 * num2;
+                            break;
+                        case '/':
+                            if (num2 === 0) return "Error: Division by zero"; // Handle division by zero
+                            result = num1 / num2;
+                            // For division, format to 2 decimal places if it's not an integer
+                            if (result % 1 !== 0) {
+                                return result.toFixed(2);
+                            }
+                            break;
+                        default:
+                            return "Error: Invalid operator";
+                    }
+                    // For non-division results, if they are integers, display as integer. Otherwise, display as is.
+                    if (result % 1 === 0) {
+                        return result.toString();
+                    }
+                    return result.toString();
+                }
+            }
+        ];
+
+        // Global variables for overall summary
+        const totalProblemsCount = problems.length;
+        // Stores { problemId: boolean (true for pass, false for fail) }
+        // Using undefined to indicate not yet checked
+        let problemResults = {}; 
+        problems.forEach(p => problemResults[p.id] = undefined); 
+
+        // Function to update the overall summary display
+        function updateOverallSummary() {
+            let currentPassed = 0;
+            let currentFailed = 0;
+            let checkedCount = 0;
+
+            for (const problemId in problemResults) {
+                if (problemResults[problemId] !== undefined) {
+                    checkedCount++;
+                    if (problemResults[problemId]) {
+                        currentPassed++;
+                    } else {
+                        currentFailed++;
+                    }
+                }
+            }
+
+            document.getElementById('total-problems-count').textContent = totalProblemsCount;
+            document.getElementById('passed-problems-count').textContent = currentPassed;
+            document.getElementById('failed-problems-count').textContent = currentFailed;
+
+            let statusText = "กำลังรอการตรวจสอบ...";
+            if (checkedCount > 0) {
+                if (checkedCount === totalProblemsCount) {
+                    statusText = "ตรวจสอบครบทุกข้อแล้ว!";
+                } else {
+                    statusText = `ตรวจสอบไปแล้ว ${checkedCount} จาก ${totalProblemsCount} ข้อ...`;
+                }
+            }
+            document.getElementById('overall-status').textContent = statusText;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const problemsContainer = document.getElementById('problems-container');
+
+            // Render each problem section dynamically
+            problems.forEach(problem => {
+                const problemDiv = document.createElement('div');
+                problemDiv.id = problem.id;
+                problemDiv.className = 'problem-section';
+                problemDiv.innerHTML = `
+                    <h2 class="text-2xl font-semibold mb-4 text-indigo-600">${problem.title}</h2>
+                    <div class="mb-4 text-gray-800">${problem.description}</div>
+
+                    <h3 class="text-xl font-medium mb-2 text-gray-700">โค้ด Python ของคุณ:</h3>
+                    <textarea id="${problem.id}-code" placeholder="วางโค้ด Python ของคุณที่นี่..."></textarea>
+
+                    <h3 class="text-xl font-medium my-4 text-gray-700">ข้อมูลนำเข้าสำหรับทดสอบ:</h3>
+                    <div id="${problem.id}-input-display" class="bg-gray-100 p-4 rounded-lg border border-gray-300 text-gray-700 font-mono whitespace-pre-wrap">
+                        <!-- Input will be displayed here -->
+                    </div>
+
+                    <h3 class="text-xl font-medium my-4 text-gray-700">ผลลัพธ์ที่คาดหวัง (Expected Output):</h3>
+                    <div id="${problem.id}-expected-output" class="bg-blue-50 p-4 rounded-lg border border-blue-200 text-blue-800 font-mono whitespace-pre-wrap">
+                        <!-- Expected output will be displayed here -->
+                    </div>
+
+                    <h3 class="text-xl font-medium my-4 text-gray-700">ผลลัพธ์จากโค้ดของคุณ (วางที่นี่หลังจากรันโค้ดของคุณเอง):</h3>
+                    <textarea id="${problem.id}-user-output" placeholder="วางผลลัพธ์ที่ได้จากการรันโค้ด Python ของคุณด้วยข้อมูลนำเข้าข้างต้น..."></textarea>
+
+                    <button id="${problem.id}-run-test" class="mt-4">ตรวจสอบผลลัพธ์</button>
+                    <div id="${problem.id}-result" class="result-box mt-4 hidden"></div>
+                `;
+                problemsContainer.appendChild(problemDiv);
+
+                // Add event listener for the "ตรวจสอบผลลัพธ์" button
+                document.getElementById(`${problem.id}-run-test`).addEventListener('click', () => {
+                    runTests(problem.id);
+                });
+            });
+            updateOverallSummary(); // Initial call to display total problems
+        });
+
+        // Main function to run tests for a given problem
+        async function runTests(problemId) {
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            loadingOverlay.style.display = 'flex'; // Show loading overlay
+
+            const problem = problems.find(p => p.id === problemId);
+            const inputDisplay = document.getElementById(`${problemId}-input-display`);
+            const expectedOutputDisplay = document.getElementById(`${problemId}-expected-output`);
+            const userOutputTextarea = document.getElementById(`${problemId}-user-output`);
+            const resultDiv = document.getElementById(`${problemId}-result`);
+
+            resultDiv.classList.add('hidden'); // Hide previous result before showing new one
+
+            let allTestsPassed = true;
+            let resultHtml = `<h3 class="text-lg font-semibold mb-2">ผลการตรวจสอบ:</h3>`;
+
+            // Prepare and display all test cases for the user to run locally
+            let inputDisplayHtml = `<p class="mb-2"><strong>ข้อมูลนำเข้าที่คุณต้องใช้ทดสอบโค้ดของคุณ:</strong></p>`;
+            let expectedOutputHtml = `<p class="mb-2"><strong>ผลลัพธ์ที่คาดหวังสำหรับข้อมูลนำเข้าข้างต้น:</strong></p>`;
+
+            for (let i = 0; i < problem.testCases.length; i++) {
+                const testCase = problem.testCases[i];
+                // Replace \\n with actual newline for display in <pre> tags
+                const input = testCase.input.replace(/\\n/g, '\\n');
+                const expected = problem.generateExpectedOutput(testCase.input).replace(/\\n/g, '\\n');
+
+                inputDisplayHtml += `
+                    <div class="mb-4 p-3 bg-white rounded-md shadow-sm border border-gray-200">
+                        <p class="font-bold text-gray-900">Test Case ${i + 1} Input:</p>
+                        <pre class="text-sm text-gray-800">${input}</pre>
+                    </div>
+                `;
+                expectedOutputHtml += `
+                    <div class="mb-4 p-3 bg-white rounded-md shadow-sm border border-gray-200">
+                        <p class="font-bold text-gray-900">Test Case ${i + 1} Expected Output:</p>
+                        <pre class="text-sm text-gray-800">${expected}</pre>
+                    </div>
+                `;
+            }
+            inputDisplay.innerHTML = inputDisplayHtml;
+            expectedOutputDisplay.innerHTML = expectedOutputHtml;
+
+            // Small delay to simulate processing and allow UI to update
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            // Get user's pasted output and perform comparison
+            const userOutputRaw = userOutputTextarea.value.trim();
+            if (userOutputRaw === "") {
+                resultHtml += `<p class="text-red-700">กรุณาวางผลลัพธ์จากโค้ดของคุณในช่อง "ผลลัพธ์จากโค้ดของคุณ" เพื่อทำการตรวจสอบ</p>`;
+                resultDiv.className = 'result-box result-fail mt-4';
+                resultDiv.innerHTML = resultHtml;
+                resultDiv.classList.remove('hidden');
+                loadingOverlay.style.display = 'none';
+                return;
+            }
+
+            // Split user's output into lines for comparison, handling potential extra newlines
+            const userOutputLines = userOutputRaw.split(/[\r\n]+/).map(s => s.trim()).filter(s => s !== '');
+            let currentExpectedOutputLineIndex = 0;
+            let detailedResults = [];
+            allTestsPassed = true;
+
+            for (let i = 0; i < problem.testCases.length; i++) {
+                const testCase = problem.testCases[i];
+                const expectedOutputForThisCase = problem.generateExpectedOutput(testCase.input).split('\\n').map(s => s.trim());
+                let userOutputForThisCase = [];
+
+                // Collect user output lines corresponding to this test case
+                for (let j = 0; j < expectedOutputForThisCase.length; j++) {
+                    if (currentExpectedOutputLineIndex < userOutputLines.length) {
+                        userOutputForThisCase.push(userOutputLines[currentExpectedOutputLineIndex]);
+                        currentExpectedOutputLineIndex++;
+                    } else {
+                        // Not enough user output lines provided for this test case
+                        allTestsPassed = false;
+                        break;
+                    }
+                }
+
+                const userOutputJoined = userOutputForThisCase.join('\\n');
+                const expectedOutputJoined = expectedOutputForThisCase.join('\\n');
+
+                if (userOutputJoined === expectedOutputJoined) {
+                    detailedResults.push(`
+                        <div class="mb-2 p-2 bg-green-50 rounded-md border border-green-200">
+                            <p class="font-bold text-green-700">Test Case ${i + 1}: ผ่าน ✅</p>
+                            <p class="text-sm text-green-600">Input: <pre class="inline">${testCase.input.replace(/\\n/g, '\\n')}</pre></p>
+                            <p class="text-sm text-green-600">Expected: <pre class="inline">${expectedOutputJoined}</pre></p>
+                            <p class="text-sm text-green-600">Your Output: <pre class="inline">${userOutputJoined}</pre></p>
+                        </div>
+                    `);
+                } else {
+                    allTestsPassed = false;
+                    detailedResults.push(`
+                        <div class="mb-2 p-2 bg-red-50 rounded-md border border-red-200">
+                            <p class="font-bold text-red-700">Test Case ${i + 1}: ไม่ผ่าน ❌</p>
+                            <p class="text-sm text-red-600">Input: <pre class="inline">${testCase.input.replace(/\\n/g, '\\n')}</pre></p>
+                            <p class="text-sm text-red-600">Expected: <pre class="inline">${expectedOutputJoined}</pre></p>
+                            <p class="text-sm text-red-600">Your Output: <pre class="inline">${userOutputJoined}</pre></p>
+                        </div>
+                    `);
+                }
+            }
+
+            // Final summary of results for this specific problem
+            if (allTestsPassed) {
+                resultHtml += `<p class="text-green-700 text-xl font-bold mb-4">🎉 ยอดเยี่ยม! โค้ดของคุณผ่านทุกการทดสอบ!</p>`;
+                resultDiv.className = 'result-box result-pass mt-4';
+            } else {
+                resultHtml += `<p class="text-red-700 text-xl font-bold mb-4">😞 โค้ดของคุณยังไม่ถูกต้องทั้งหมด โปรดตรวจสอบและแก้ไข</p>`;
+                resultDiv.className = 'result-box result-fail mt-4';
+            }
+
+            resultHtml += detailedResults.join('');
+            resultDiv.innerHTML = resultHtml;
+            resultDiv.classList.remove('hidden');
+
+            // Update overall summary
+            problemResults[problemId] = allTestsPassed;
+            updateOverallSummary(); 
+
+            loadingOverlay.style.display = 'none'; // Hide loading overlay
+        }
+    </script>
 </body>
 </html>

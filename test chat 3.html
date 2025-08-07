@@ -1,3 +1,4 @@
+test chat 3.html
 <!DOCTYPE html>
 <html>
 <head>
@@ -137,18 +138,18 @@ test_banks = {
         "name": "7. Area of triangle",
         "description": "รับความสูงและฐาน แล้วคำนวณพื้นที่สามเหลี่ยม/n/nInput:/n5/n10/nOutput:/n25",
         "cases": [
-            {"input": ["10", "50"], "output": "250"},
-            {"input": ["100", "0"], "output": "0"},
-            {"input": ["0", "0"], "output": "0"}
+            {"input": ["10", "50"], "output": "250.0"},
+            {"input": ["100", "0"], "output": "0.0."},
+            {"input": ["0", "0"], "output": "0.0"}
         ]
     },
     "quad": {
         "name": "8. Triangle and Quadrangle",
-        "description": "รับ t หรือ q เพื่อตัดสินว่าจะคำนวณพื้นที่สามเหลี่ยมหรือสี่เหลี่ยม แล้วรับความสูงและความกว้าง/n/nInput:/nt/n5/n6/nOutput:/n15",
+        "description": "รับ t หรือ q เพื่อตัดสินว่าจะคำนวณพื้นที่สามเหลี่ยมหรือสี่เหลี่ยม แล้วรับความสูงและความกว้าง ถ้าเขียนตัวแปรที่ไม่ใช่tหรือqให้พิมพ์ No/n/nInput:/nt/n5/n6/nOutput:/n15",
         "cases": [
-            {"input": ["t", "3", "100"], "output": "150"},
+            {"input": ["t", "3", "100"], "output": "150.0"},
             {"input": ["q", "5", "100"], "output": "500"},
-            {"input": ["a", "10", "5"], "output": "no"}
+            {"input": ["a", "10", "5"], "output": "No"}
         ]
     },
     "multiple": {
@@ -182,6 +183,8 @@ def runCode():
     output_div = document["output"]
     output_text = f"Selected Problem: {test_banks[selected]['name']}\n\n"
 
+    results_data.clear()  # ✅ Clear previous results
+
     for test in test_cases:
         inputs = test["input"].copy()
         expected = test["output"]
@@ -205,7 +208,8 @@ def runCode():
             "input": test["input"],
             "expected": expected,
             "student_output": student_output,
-            "correct": correct
+            "correct": correct,
+            "student_code": original_code  # ✅ store original code
         })
 
         output_text += f"Input: {test['input']} | Expected: {expected} | Got: {student_output} → {'✅' if correct else '❌'}\n"
@@ -219,13 +223,15 @@ def downloadCSV():
         window.alert("⛔ ยังไม่มีข้อมูลผลลัพธ์ กรุณากดตรวจสอบก่อน")
         return
 
-    csv = "Problem,Input,Expected,Student Output,Result\n"
+    csv = "Problem,Input,Expected,Student Output,Result,Student Code\n"
     for r in results_data:
+        student_code_clean = r['student_code'].replace('"', '""')  # ✅ escape double quotes
         line = f"{r['problem']}," \
                f"{'|'.join(r['input'])}," \
                f"{r['expected']}," \
                f"{r['student_output']}," \
-               f"{'Correct' if r['correct'] else 'Incorrect'}"
+               f"{'Correct' if r['correct'] else 'Incorrect'}," \
+               f"\"{student_code_clean}\""  # ✅ wrap code in quotes
         csv += line + "\n"
 
     blob = window.Blob.new([csv], { "type": "text/csv" })
@@ -238,6 +244,7 @@ def downloadCSV():
     link.remove()
 
 window.downloadCSV = downloadCSV
+
 
 def on_problem_change(event):
     key = document["problem"].value
